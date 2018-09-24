@@ -121,10 +121,10 @@ var app = http.createServer(function (request, response) {
         });
         request.on('end', function () {
             var post = qs.parse(body);
-            var id = post.id;
-            var filterID = path.parse(id).base;
-            fs.unlink(`data/${filterID}`, function (error) {
-                response.writeHead(302, { Location: `/` });
+            db.query('DELETE FROM topic WHERE id=?', [post.id], function (error, result) {
+                if (error) { throw error };
+                console.log(result);
+                response.writeHead(302, { Location: '/' });
                 response.end();
             });
         });
