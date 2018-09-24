@@ -83,16 +83,16 @@ var app = http.createServer(function (request, response) {
             )
         });
     } else if (pathname === '/update') {
-        fs.readdir('./data', function (error, filelist) {
-            var title = queryData.id;
-            var list = template.List(filelist);
-            var filterID = path.parse(queryData.id).base;
-            fs.readFile(`data/${filterID}`, 'utf8', function (err, description) {
+        db.query('SELECT * FROM topic', function (error, topics) {
+            if (error) { throw error };
+            db.query(`SELECT * FROM topic WHERE id=?`, [queryData.id], function (error2, topic) {
+                if (error2) { throw error2 };
+                var list = template.List(topics);
                 var html = template.HTML('UPDATE', list, `
                 <form action="/update_process" method="post">
-                <input type="hidden" name="id" value="${title}">
-                <p><input name="title" type="text" placeholder="title" value="${title}"></p>
-                <p><textarea name="description" placeholder="description">${description}</textarea></p>
+                <input type="hidden" name="id" value="${topic[0].id}">
+                <p><input name="title" type="text" placeholder="title" value="${topic[0].title}"></p>
+                <p><textarea name="description" placeholder="description">${topic[0].description}</textarea></p>
                 <p><input type="submit"></p>
                 </form>
                 `,
@@ -108,14 +108,10 @@ var app = http.createServer(function (request, response) {
         });
         request.on('end', function () {
             var post = qs.parse(body);
-            var id = post.id;
-            var title = post.title;
-            var description = post.description;
-            fs.rename(`data/${id}`, `data/${title}`, function (error) {
-                fs.writeFile(`data/${title}`, description, 'utf8', function (err) {
-                    response.writeHead(302, { Location: `/?id=${title}` });
-                    response.end();
-                });
+            db.query('UPDATE topic SET title=?, description=?, author_id=1 WHERE id=?', [post.title, post.description, post.id], function (error, result) {
+                if (error) { throw error };
+                response.writeHead(302, { Location: `/?id=${post.id}` });
+                response.end();
             });
         });
     } else if (pathname === '/delete_process') {
