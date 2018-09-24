@@ -34,12 +34,14 @@ var app = http.createServer(function (request, response) {
             db.query('SELECT * FROM topic', function (error, topics) {
                 if (error) { throw error };
                 var filterID = path.parse(queryData.id).base;
-                db.query('SELECT * FROM topic WHERE id=?', [filterID], function (error2, topic) {
+                db.query('SELECT * FROM topic LEFT JOIN  author ON topic.author_id=author.id WHERE topic.id=?', [filterID], function (error2, topic) {
                     if (error2) { throw error2 };
                     var sanitizeTitle = sanitizeHtml(topic[0].title);
                     var sanitizeDescription = sanitizeHtml(topic[0].description, { allowedTags: ['h1'] });
                     var list = template.List(topics);
-                    var html = template.HTML(sanitizeTitle, list, sanitizeDescription,
+                    var html = template.HTML(sanitizeTitle, list, 
+                        `sanitizeDescription
+                        <n><h3>by ${topic[0].name}</h3>`,
                         `<a href="/create">CREATE</a>
                         <a href="/update?id=${queryData.id}">UPDATE</a>
                         <form action="/delete_process" method="post">
