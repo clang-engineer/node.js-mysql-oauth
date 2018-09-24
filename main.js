@@ -39,8 +39,8 @@ var app = http.createServer(function (request, response) {
                     var sanitizeTitle = sanitizeHtml(topic[0].title);
                     var sanitizeDescription = sanitizeHtml(topic[0].description, { allowedTags: ['h1'] });
                     var list = template.List(topics);
-                    var html = template.HTML(sanitizeTitle, list, 
-                        `sanitizeDescription
+                    var html = template.HTML(sanitizeTitle, list,
+                        `${sanitizeDescription}
                         <n><h3>by ${topic[0].name}</h3>`,
                         `<a href="/create">CREATE</a>
                         <a href="/update?id=${queryData.id}">UPDATE</a>
@@ -56,18 +56,21 @@ var app = http.createServer(function (request, response) {
         }
     } else if (pathname === '/create') {
         db.query('SELECT * FROM topic', function (error, topics) {
-            var description = `
-            <form action="/create_process" method="post">
-            <p><input name="title" type="text" placeholder="title"></p>
-            <p><textarea name="description" placeholder="description"></textarea></p>
-            <p><input type="submit"></p>
-            </form>
-            `;
-            var list = template.List(topics);
-            var html = template.HTML('CREATE', list, description,
-                `<a href="/create">CREATE</a>`);
-            response.writeHead(200);
-            response.end(html);
+            db.query('SELECT * FROM author', function (error2, authors) {
+                var description = `
+                <form action="/create_process" method="post">
+                <p><input name="title" type="text" placeholder="title"></p>
+                <p><textarea name="description" placeholder="description"></textarea></p>
+                <p>${template.authorSelect(authors)}</p>
+                <p><input type="submit"></p>
+                </form>
+                `;
+                var list = template.List(topics);
+                var html = template.HTML('CREATE', list, description,
+                    `<a href="/create">CREATE</a>`);
+                response.writeHead(200);
+                response.end(html);
+            });
         });
     } else if (pathname === '/create_process') {
         var body = "";
@@ -76,7 +79,7 @@ var app = http.createServer(function (request, response) {
         });
         request.on('end', function () {
             var post = qs.parse(body);
-            db.query(`INSERT INTO topic (title,description,created,author_id) VALUES(?,?,NOW(),?)`, [post.title, post.description, 1],
+            db.query(`INSERT INTO topic (title,description,created,author_id) VALUES(?,?,?,?)`, [post.title, post.description, '2018-01-01 12:10:11', post.author_id ],
                 function (error, result) {
                     if (error) { throw error };
                     response.writeHead(302, { Location: `/?id=${result.insertId}` });
