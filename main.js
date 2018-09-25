@@ -7,6 +7,7 @@ var db = require('./lib/db.js')
 var path = require('path');
 var sanitizeHtml = require('sanitize-html');
 var topic = require('./lib/topic')
+var author = require('./lib/author')
 
 
 var app = http.createServer(function (request, response) {
@@ -29,7 +30,9 @@ var app = http.createServer(function (request, response) {
     } else if (pathname === '/update_process') {
         topic.update_process(request, response);
     } else if (pathname === '/delete_process') {
-        topic.delete_process(request,response);
+        topic.delete_process(request, response);
+    } else if (pathname === '/author') {
+        author.home(request,response);
     } else {
         response.writeHead(404);
         response.end('not found');
