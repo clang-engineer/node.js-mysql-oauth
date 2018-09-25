@@ -32,7 +32,9 @@ var app = http.createServer(function (request, response) {
     } else if (pathname === '/delete_process') {
         topic.delete_process(request, response);
     } else if (pathname === '/author') {
-        author.home(request,response);
+        author.home(request, response);
+    } else if (pathname === '/author/create_process') {
+        author.create_process(request, response);
     } else {
         response.writeHead(404);
         response.end('not found');
